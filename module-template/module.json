@@ -1,0 +1,60 @@
+{
+  "id": "my-module-name",
+  "title": "My Module Title",
+  "description": "A clear description of what learners will build and learn in this module. Use **Markdown** for formatting. Aim for 2–3 sentences that explain the hands-on outcome.",
+  "gettingStarted": "List what learners need before they start:\n\n1. **Postman account** — [sign up free](https://www.postman.com/)\n2. **Postman API key** — go to [postman.co/settings/me/api-keys](https://go.postman.co/settings/me/api-keys)\n3. Any other prerequisites specific to your module",
+  "gettingStartedTitle": "Before you start",
+  "color": "#FF6C37",
+  "icon": "🚀",
+  "private": false,
+  "lessons": [
+    {
+      "id": "lesson-1-get-set-up",
+      "slug": "get-set-up",
+      "title": "Get Set Up",
+      "partNumber": 1,
+      "description": "Set up the workspace and tools you'll need for the rest of this module.",
+      "steps": [
+        {
+          "id": "step-1-create-a-workspace",
+          "stepNumber": 1,
+          "title": "Create a Workspace",
+          "description": "Create a new workspace in Postman for this module.\n\n1. Open Postman and click **Workspaces** in the header.\n2. Click **Create Workspace**.\n3. Name it **My Module Name** and set visibility to **Personal**.\n4. Click **Create Workspace**.\n\nPaste the workspace URL or ID below to verify.",
+          "points": 10,
+          "validatorId": "validate-my-module-name-create-workspace"
+        },
+        {
+          "id": "step-2-do-something",
+          "stepNumber": 2,
+          "title": "Do Something",
+          "description": "Describe what the learner should do in this step. Be specific — include exact UI paths, expected outcomes, and what to paste/enter for validation.\n\nFor manual steps (no API-based validation), add `\"manual\": true`.",
+          "points": 10,
+          "validatorId": "validate-my-module-name-do-something",
+          "manual": true
+        }
+      ]
+    },
+    {
+      "id": "lesson-2-build-something",
+      "slug": "build-something",
+      "title": "Build Something",
+      "partNumber": 2,
+      "description": "The core hands-on lesson where learners build the main artifact.",
+      "steps": [
+        {
+          "id": "step-1-build-the-thing",
+          "stepNumber": 1,
+          "title": "Build the Thing",
+          "description": "Describe the hands-on step. If the step requires user input (e.g. a GitHub username), add an `inputField` object.\n\nExample with input field — the learner enters a value that gets passed to the validator:",
+          "points": 20,
+          "validatorId": "validate-my-module-name-build-the-thing",
+          "inputField": {
+            "key": "someValue",
+            "label": "Your Value",
+            "placeholder": "e.g. example-value"
+          }
+        }
+      ]
+    }
+  ]
+}

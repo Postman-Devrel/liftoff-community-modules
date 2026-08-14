@@ -1,0 +1,55 @@
+name: Validate Module Submission
+
+on:
+  pull_request:
+    paths:
+      - "modules/**"
+
+jobs:
+  validate:
+    name: Validate module structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate module(s)
+        run: node scripts/validate.js
+
+  check-new-module:
+    name: Check for collisions with liftoff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch existing module IDs from liftoff
+        run: |
+          # Pull the list of module directories from the main liftoff repo
+          EXISTING=$(curl -s "https://api.github.com/repos/Postman-DevRel/liftoff/contents/src/content/modules" \
+            -H "Accept: application/vnd.github.v3+json" | \
+            jq -r '.[] | select(.type=="dir") | .name')
+
+          echo "Existing modules in liftoff:"
+          echo "$EXISTING"
+
+          # Check each submitted module for ID collision
+          COLLISION=0
+          for dir in modules/*/; do
+            MODULE_ID=$(basename "$dir")
+            if echo "$EXISTING" | grep -qx "$MODULE_ID"; then
+              echo "::error::Module ID '$MODULE_ID' already exists in the main liftoff repo"
+              COLLISION=1
+            fi
+          done
+
+          if [ "$COLLISION" -eq 1 ]; then
+            exit 1
+          fi
+
+          echo "No collisions found."
