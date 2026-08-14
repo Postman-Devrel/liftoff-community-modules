@@ -4,10 +4,11 @@ Thank you for building a learning module for the Postman community! This guide w
 
 ## How it works
 
-1. You create a module in this repo following the template structure
-2. You open a pull request — CI validates your `module.json`, `content.md`, and validator stubs automatically
-3. The LiftOff team reviews your content, works with you on any feedback, and merges
-4. Once merged, the module is promoted into the main [LiftOff app](https://github.com/Postman-DevRel/liftoff) where the validators are wired up and the module goes live
+1. You write a `content.md` in a structured format — the generator turns it into `module.json` and validator stubs
+2. You preview your module in the browser to make sure it looks right
+3. You open a pull request — CI validates everything automatically
+4. The LiftOff team reviews your content, works with you on any feedback, and merges
+5. Once merged, the module is promoted into the main [LiftOff app](https://github.com/Postman-DevRel/liftoff) where the validators are wired up and the module goes live
 
 ## Quick start
 
@@ -27,44 +28,71 @@ cp -r module-template modules/my-module-name
 
 Replace `my-module-name` with a unique kebab-case ID for your module (e.g. `graphql-basics`, `api-security-101`).
 
-### 3. Edit your module
+### 3. Write your content.md
 
-Your module directory must contain:
+This is the **only file you need to author**. The structured format uses markdown headings to define lessons and steps:
 
+```markdown
+# My Module Title
+
+Description of what learners will build and learn.
+
+## Part 1: Get Set Up
+
+Optional lesson description.
+
+### Step 1: Create a Workspace
+
+Step instructions with full markdown — numbered lists,
+code blocks, tables, links, etc.
+
+**Validation:** What the validator should check.
+
+### Step 2: Manual Step
+
+Instructions for a step that can't be auto-validated.
+
+**Validation:** [MANUAL] Learner self-reports completion.
+
+## Part 2: Build Something
+
+### Step 3: Build the Thing
+
+More instructions...
+
+**Validation:** What to check.
 ```
-modules/my-module-name/
-├── module.json          # Module structure, lessons, and steps (required)
-├── content.md           # Long-form overview content (required)
-├── badge.png            # Badge image, 1024×1024 (recommended)
-└── validators/          # One stub file per validatorId (required)
-    ├── validate-my-module-name-step-one.ts
-    └── validate-my-module-name-step-two.ts
-```
-
-#### module.json
-
-This defines your module's structure — title, description, lessons, steps, and how each step is validated. See `module-template/module.json` for a complete example with comments.
 
 Key rules:
-- **`id`** must match your directory name exactly
-- **`validatorId`** values must start with `validate-<your-module-id>-`
-- Each `validatorId` must have a matching `.ts` stub file in `validators/`
-- Step descriptions should be detailed — tell the learner exactly what to do
+- **`# Title`** — H1 becomes the module title
+- **First paragraph** after H1 becomes the description
+- **`## Part N: Title`** — H2 becomes a lesson
+- **`### Step N: Title`** — H3 becomes a step
+- **`**Validation:**`** — describes what the validator checks
+- **`[MANUAL]`** in a validation block marks the step as self-reported
+- **`**PRIVATE**`** in the first 5 lines makes the module private
 
-#### content.md
+See `module-template/content.md` for a starter template and the [Authoring Guide](docs/authoring-guide.md) for detailed writing guidance, validation types, and a full example.
 
-The narrative overview of your module — what learners will build, what they'll learn, and who it's for. This appears on the module's landing page.
+### 4. Generate module.json
 
-#### Validator stubs
+```bash
+npm run generate modules/my-module-name
+```
 
-Each step in your module has a `validatorId` that maps to a validator function. In this repo, you provide **stubs** — skeleton implementations that show what the validator will check. The LiftOff team will wire up the full implementation when promoting your module.
+This parses your `content.md` and generates:
+- `module.json` — the structured module definition
+- `validators/` — stub files for each step's validator
 
-See the examples in `module-template/validators/` for the three common patterns:
-- **API-based validation** — uses the Postman API to check workspace/collection state
-- **Manual validation** — learner self-reports (for steps that can't be auto-checked)
-- **Input field validation** — uses a value the learner enters
+### 5. Preview in the browser
 
-### 4. Validate locally
+```bash
+npm run preview modules/my-module-name
+```
+
+Open `http://localhost:3333` to see your module rendered like it will appear in LiftOff. Edit your files and reload the browser to see changes.
+
+### 6. Validate locally
 
 ```bash
 npm test
@@ -72,7 +100,7 @@ npm test
 
 This runs the same checks that CI will run on your PR.
 
-### 5. Open a pull request
+### 7. Open a pull request
 
 Push your branch and open a PR against `main`. CI will automatically:
 - Validate your `module.json` against the schema
@@ -80,7 +108,7 @@ Push your branch and open a PR against `main`. CI will automatically:
 - Verify every `validatorId` has a matching stub file
 - Check your module ID doesn't collide with existing modules in LiftOff
 
-### 6. Review and promotion
+### 8. Review and promotion
 
 The LiftOff team will review your PR for:
 - Content quality and clarity
@@ -90,6 +118,21 @@ The LiftOff team will review your PR for:
 
 Once merged, the team promotes your module into the main LiftOff app, wires up the validators, adds regression tests, and ships it.
 
+## Module directory structure
+
+After running the generator, your module directory will contain:
+
+```
+modules/my-module-name/
+├── content.md           # Your authored content (source of truth)
+├── module.json          # Generated module definition
+├── badge.png            # Badge image, 1024×1024 (optional)
+└── validators/          # Generated validator stubs
+    ├── types.ts
+    ├── validate-my-module-name-create-a-workspace.ts
+    └── validate-my-module-name-build-the-thing.ts
+```
+
 ## Guidelines
 
 ### Writing good steps
@@ -98,8 +141,11 @@ Once merged, the team promotes your module into the main LiftOff app, wires up t
 - **One action per step.** Each step should validate one thing. Break complex tasks into multiple steps.
 - **Include expected outcomes.** Tell learners what they should see after completing a step.
 - **Use Markdown formatting.** Bold UI elements (`**Create Workspace**`), use numbered lists for sequential actions, and code blocks for commands.
+- **Start with context.** Every step should begin with 1–2 sentences explaining *what* this step accomplishes and *why* — don't jump straight into "1. Click..."
 
 ### Choosing point values
+
+The generator defaults all steps to 10 points. After generating, you can edit `module.json` to adjust:
 
 - **10 points** — Setup steps, simple actions (create workspace, fork repo)
 - **15–20 points** — Core learning steps (build a collection, write a test)
@@ -116,6 +162,16 @@ Most validators follow one of these patterns:
 | **Test script check** | Verify a request has specific test assertions | Parse `event[].script.exec` |
 | **Manual** | Step can't be auto-validated (UI-only action) | Return success immediately |
 | **Input field** | Validate using a value the learner provides | Check `context.userInputs[key]` |
+
+### Regenerating after edits
+
+If you update your `content.md` after generating, just run the generator again:
+
+```bash
+npm run generate modules/my-module-name
+```
+
+It preserves your existing color and icon, and only creates validator stubs for new steps (existing stubs are not overwritten).
 
 ## Questions?
 
