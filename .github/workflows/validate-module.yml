@@ -9,6 +9,7 @@ jobs:
   validate:
     name: Validate module structure
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
@@ -25,6 +26,7 @@ jobs:
   check-new-module:
     name: Check for collisions with liftoff
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 
