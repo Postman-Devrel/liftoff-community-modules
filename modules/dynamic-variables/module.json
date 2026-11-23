@@ -1,0 +1,154 @@
+{
+  "id": "dynamic-variables",
+  "title": "Dynamic Variables: Generate and Reuse Test Data",
+  "description": "Stop hardcoding `\"email\": \"test@example.com\"` and fighting `409 Conflict` errors. In this module you'll use Postman's built-in **dynamic variables** — like `{{$guid}}`, `{{$randomEmail}}`, and `{{$isoTimestamp}}` — to generate fresh, realistic test data on every request, then capture those values, reuse them across a **create → read → update** workflow, and trigger follow-up requests automatically with `pm.execution.runRequest()`.",
+  "gettingStarted": "### What you'll need\n\n1. **A Postman account** — [sign up free](https://www.postman.com/postman-account/) if you don't have one.\n2. **The Postman desktop app or web app** — either works for every step.\n3. **A Postman API key** — LiftOff uses it to check your work. [Generate one here](https://go.postman.co/settings/me/api-keys).\n\nEvery request in this module targets [Postman Echo](https://postman-echo.com), a free service that sends back exactly what you send it. That makes it easy to *see* the values your dynamic variables generate. About **15–20 minutes**.",
+  "gettingStartedTitle": "Before you start",
+  "color": "#8B5CF6",
+  "icon": "🎲",
+  "lessons": [
+    {
+      "id": "lesson-1-meet-dynamic-variables",
+      "slug": "meet-dynamic-variables",
+      "title": "Meet Dynamic Variables",
+      "partNumber": 1,
+      "description": "Set up a workspace and collection, then send your first request powered by dynamic variables.",
+      "steps": [
+        {
+          "id": "step-1-create-a-workspace",
+          "stepNumber": 1,
+          "title": "Create a Workspace",
+          "description": "A workspace keeps everything for this module — collections, requests, and variables — in one place, separate from your other work.\n\n1. In Postman, click **Workspaces** in the top navigation, then **Create Workspace**.\n2. Choose **Blank workspace** and click **Next**.\n3. Name it **Dynamic Variables - [your name]** (for example, *Dynamic Variables - Alex*).\n4. Set visibility to **Personal** and click **Create**.",
+          "points": 10,
+          "validatorId": "validate-dynamic-variables-create-a-workspace"
+        },
+        {
+          "id": "step-2-create-a-collection",
+          "stepNumber": 2,
+          "title": "Create a Collection",
+          "description": "Collections group related requests so you can share variables between them and run them together — both of which you'll do later in this module.\n\n1. Inside your **Dynamic Variables** workspace, click **New** → **Collection**.\n2. Name the collection **User Lifecycle**.\n\nYou should see an empty **User Lifecycle** collection in the sidebar.",
+          "points": 10,
+          "validatorId": "validate-dynamic-variables-create-a-collection"
+        },
+        {
+          "id": "step-3-send-your-first-dynamic-variable",
+          "stepNumber": 3,
+          "title": "Send Your First Dynamic Variable",
+          "description": "Dynamic variables are built-in placeholders that start with `$`. Postman replaces each one with a freshly generated value **every time you send a request** — you don't define them anywhere. They're backed by the [Faker](https://github.com/faker-js/faker) library, so they produce realistic names, emails, UUIDs, dates, and more.\n\n| Syntax | Who defines it | Value |\n|--------|----------------|-------|\n| `{{baseUrl}}` | You (collection, environment, or global variable) | Whatever you set — stays the same until you change it |\n| `{{$guid}}` | Postman (built-in) | A brand new value on every send |\n\nA few you'll use in this module:\n\n| Variable | Example output |\n|----------|----------------|\n| `{{$guid}}` | `611c2e81-2ccb-42d8-9ddc-2d0bfa65c1b4` |\n| `{{$timestamp}}` | `1732190400` (Unix seconds) |\n| `{{$isoTimestamp}}` | `2026-11-21T10:15:30.000Z` |\n| `{{$randomFullName}}` | `Melba Kshlerin` |\n| `{{$randomEmail}}` | `Kaci.Jacobson@yahoo.com` |\n| `{{$randomInt}}` | `742` (between 0 and 1000) |\n\nNow try them in the URL and a header:\n\n1. In the **User Lifecycle** collection, click **Add a request** and name it **Echo Dynamic Values**.\n2. Set the method to **GET** and enter this URL:\n\n   ```\n   https://postman-echo.com/get?requestId={{$guid}}&sentAt={{$timestamp}}\n   ```\n\n3. Open the **Headers** tab and add a header with key `X-Trace-Id` and value `{{$randomUUID}}`.\n4. Click **Send**. In the response, look at `args.requestId`, `args.sentAt`, and `headers.x-trace-id` — each holds a generated value.\n5. Click **Send** again. Every value changes.\n6. Click **Save**.\n\n> **Tip:** Type `{{$` in the URL bar, a body, or a header to see autocomplete suggestions for every dynamic variable.",
+          "points": 15,
+          "validatorId": "validate-dynamic-variables-send-your-first-dynamic-variable"
+        }
+      ]
+    },
+    {
+      "id": "lesson-2-seed-realistic-request-payloads",
+      "slug": "seed-realistic-request-payloads",
+      "title": "Seed Realistic Request Payloads",
+      "partNumber": 2,
+      "description": "Use dynamic variables inside a JSON body to create a unique user on every send.",
+      "steps": [
+        {
+          "id": "step-4-build-a-create-user-request",
+          "stepNumber": 4,
+          "title": "Build a Create User Request",
+          "description": "Hardcoded payloads break as soon as you send them twice — a real API would reject the duplicate email or ID. Dynamic variables make every request unique, so you can send it as often as you like.\n\n1. In the **User Lifecycle** collection, add a new request named **Create User**.\n2. Set the method to **POST** and the URL to:\n\n   ```\n   https://postman-echo.com/post\n   ```\n\n3. Open the **Body** tab, select **raw**, and choose **JSON** from the dropdown.\n4. Paste this body:\n\n   ```json\n   {\n     \"id\": \"{{$guid}}\",\n     \"name\": \"{{$randomFullName}}\",\n     \"email\": \"{{$randomEmail}}\",\n     \"age\": {{$randomInt}},\n     \"createdAt\": \"{{$isoTimestamp}}\"\n   }\n   ```\n\n5. Click **Send**. Expect `200 OK`. The `json` field in the response shows the values Postman generated.\n6. Send it a few more times and watch every field change. Then click **Save**.\n\n> **Notice:** `age` is not wrapped in quotes because `{{$randomInt}}` produces a number. Postman may underline it as invalid JSON in the editor — that's fine; it's valid once the value is filled in.",
+          "points": 20,
+          "validatorId": "validate-dynamic-variables-build-a-create-user-request"
+        }
+      ]
+    },
+    {
+      "id": "lesson-3-reuse-generated-values-across-requests",
+      "slug": "reuse-generated-values-across-requests",
+      "title": "Reuse Generated Values Across Requests",
+      "partNumber": 3,
+      "description": "Dynamic variables generate a *new* value every time they appear — so `{{$guid}}` in one request will never match `{{$guid}}` in the next. To reuse a value, you generate it once, store it in a collection variable, and reference that variable everywhere else.",
+      "steps": [
+        {
+          "id": "step-5-generate-values-once-with-replacein",
+          "stepNumber": 5,
+          "title": "Generate Values Once With replaceIn()",
+          "description": "A **pre-request script** runs before the request is sent. Inside a script, `pm.variables.replaceIn()` resolves a dynamic variable into a real value that you can store. You'll generate the user's ID, name, and email once and save them as collection variables.\n\n1. Open the **Create User** request and click the **Scripts** tab, then select **Pre-request**.\n2. Add this script:\n\n   ```javascript\n   // Generate each value once and store it for later requests\n   pm.collectionVariables.set(\"userId\", pm.variables.replaceIn(\"{{$guid}}\"));\n   pm.collectionVariables.set(\"userName\", pm.variables.replaceIn(\"{{$randomFullName}}\"));\n   pm.collectionVariables.set(\"userEmail\", pm.variables.replaceIn(\"{{$randomEmail}}\"));\n   ```\n\n3. Open the **Body** tab and replace the body so it uses the stored values (no `$` — these are now your own variables):\n\n   ```json\n   {\n     \"id\": \"{{userId}}\",\n     \"name\": \"{{userName}}\",\n     \"email\": \"{{userEmail}}\",\n     \"age\": {{$randomInt}},\n     \"createdAt\": \"{{$isoTimestamp}}\"\n   }\n   ```\n\n4. Click **Send**, then click the **User Lifecycle** collection and open its **Variables** tab. You should see `userId`, `userName`, and `userEmail` with the same values that appear in the response.\n5. Click **Save** on the request.",
+          "points": 20,
+          "validatorId": "validate-dynamic-variables-generate-values-once-with-replacein"
+        },
+        {
+          "id": "step-6-capture-a-value-from-the-response",
+          "stepNumber": 6,
+          "title": "Capture a Value From the Response",
+          "description": "Real APIs usually assign IDs on the server, so you capture them from the response instead. A **post-response script** runs after the response arrives — you'll read the ID from the response, store it, and add tests that prove the round trip worked.\n\n1. In the **Create User** request, open **Scripts** → **Post-response**.\n2. Add this script:\n\n   ```javascript\n   const body = pm.response.json().json;\n\n   pm.test(\"User was created\", function () {\n       pm.response.to.have.status(200);\n   });\n\n   pm.test(\"Response email matches the generated email\", function () {\n       pm.expect(body.email).to.eql(pm.collectionVariables.get(\"userEmail\"));\n   });\n\n   // Save the ID returned by the API for the next requests\n   pm.collectionVariables.set(\"createdUserId\", body.id);\n   ```\n\n3. Click **Send**. Open the **Test Results** tab — both tests should pass.\n4. Check the collection's **Variables** tab: `createdUserId` now holds the ID from the response. Click **Save**.",
+          "points": 20,
+          "validatorId": "validate-dynamic-variables-capture-a-value-from-the-response"
+        },
+        {
+          "id": "step-7-read-the-user-back",
+          "stepNumber": 7,
+          "title": "Read the User Back",
+          "description": "Now the value generated in **Create User** flows into a different request. This is how you chain requests in a workflow without copying and pasting IDs.\n\n1. Add a new request to **User Lifecycle** named **Get User**.\n2. Set the method to **GET** and the URL to:\n\n   ```\n   https://postman-echo.com/get?userId={{createdUserId}}&email={{userEmail}}\n   ```\n\n3. Open **Scripts** → **Post-response** and add:\n\n   ```javascript\n   const args = pm.response.json().args;\n\n   pm.test(\"Fetched the user created earlier\", function () {\n       pm.expect(args.userId).to.eql(pm.collectionVariables.get(\"createdUserId\"));\n       pm.expect(args.email).to.eql(pm.collectionVariables.get(\"userEmail\"));\n   });\n   ```\n\n4. Click **Send**. The test should pass, showing the same ID and email that **Create User** generated. Click **Save**.\n\n> **Troubleshooting:** If the test fails with `expected undefined`, send **Create User** first — `createdUserId` is only set after it runs.",
+          "points": 15,
+          "validatorId": "validate-dynamic-variables-read-the-user-back"
+        },
+        {
+          "id": "step-8-update-the-user-with-fresh-data",
+          "stepNumber": 8,
+          "title": "Update the User With Fresh Data",
+          "description": "Reused and dynamic values work well together: keep the stable ID, and generate a fresh value for the field you're changing.\n\n1. Add a new request named **Update User**.\n2. Set the method to **PATCH** and the URL to:\n\n   ```\n   https://postman-echo.com/patch\n   ```\n\n3. In **Body** → **raw** → **JSON**, paste:\n\n   ```json\n   {\n     \"id\": \"{{createdUserId}}\",\n     \"name\": \"{{$randomFullName}}\",\n     \"updatedAt\": \"{{$isoTimestamp}}\"\n   }\n   ```\n\n4. Open **Scripts** → **Post-response** and add:\n\n   ```javascript\n   const body = pm.response.json().json;\n\n   pm.test(\"Updated the same user\", function () {\n       pm.expect(body.id).to.eql(pm.collectionVariables.get(\"createdUserId\"));\n   });\n\n   pm.test(\"Name changed\", function () {\n       pm.expect(body.name).to.not.eql(pm.collectionVariables.get(\"userName\"));\n   });\n   ```\n\n5. Click **Send** — both tests should pass. Click **Save**.",
+          "points": 15,
+          "validatorId": "validate-dynamic-variables-update-the-user-with-fresh-data"
+        }
+      ]
+    },
+    {
+      "id": "lesson-4-trigger-requests-automatically",
+      "slug": "trigger-requests-automatically",
+      "title": "Trigger Requests Automatically",
+      "partNumber": 4,
+      "description": "Your workflow still needs you to click **Send** on each request in turn. With `pm.execution.runRequest()`, one request's script can run another saved request in your collection. Here, a new user automatically gets a welcome email the moment **Create User** finishes.",
+      "steps": [
+        {
+          "id": "step-9-build-a-send-welcome-email-request",
+          "stepNumber": 9,
+          "title": "Build a Send Welcome Email Request",
+          "description": "In a real app, creating a user often kicks off follow-up work, like a welcome email or a webhook. First you'll build that follow-up as a normal saved request. It reuses the stored user values and generates its own message ID and timestamp.\n\n1. Add a new request to **User Lifecycle** named **Send Welcome Email**.\n2. Set the method to **POST** and the URL to:\n\n   ```\n   https://postman-echo.com/post\n   ```\n\n3. In **Body** → **raw** → **JSON**, paste:\n\n   ```json\n   {\n     \"messageId\": \"{{$guid}}\",\n     \"to\": \"{{userEmail}}\",\n     \"userId\": \"{{createdUserId}}\",\n     \"subject\": \"Welcome, {{userName}}!\",\n     \"sentAt\": \"{{$isoTimestamp}}\"\n   }\n   ```\n\n4. Click **Send** to check it works. Expect `200 OK`, with the email and ID from your last **Create User** run in the `json` field.\n5. Click **Save**.",
+          "points": 15,
+          "validatorId": "validate-dynamic-variables-build-a-send-welcome-email-request"
+        },
+        {
+          "id": "step-10-trigger-it-from-create-user",
+          "stepNumber": 10,
+          "title": "Trigger It From Create User",
+          "description": "Now you'll make **Create User** run **Send Welcome Email** on its own. `pm.execution.runRequest()` takes the **request ID** of a saved request, sends it, and returns a Promise. Add `await` to get the response. The triggered request resolves `{{userEmail}}` and `{{createdUserId}}` from the collection variables you just set, so the email always goes to the user you just created.\n\n1. Open **Send Welcome Email**, click the **Info** icon in the right sidebar, and click **Copy request ID**.\n2. Open **Create User** → **Scripts** → **Post-response**, and add this at the **end** of the existing script. Replace `<send-welcome-email-request-id>` with the ID you copied:\n\n   ```javascript\n   // Automatically send the welcome email for the user just created\n   const emailResponse = await pm.execution.runRequest(\"<send-welcome-email-request-id>\");\n\n   pm.test(\"Welcome email was sent to the new user\", function () {\n       pm.expect(emailResponse.code).to.eql(200);\n       const email = emailResponse.json().json;\n       pm.expect(email.to).to.eql(pm.collectionVariables.get(\"userEmail\"));\n       pm.expect(email.userId).to.eql(pm.collectionVariables.get(\"createdUserId\"));\n   });\n   ```\n\n3. Click **Send** on **Create User** once. Open **Test Results**. All three tests should pass, including **Welcome email was sent to the new user**.\n4. Open the **Console** (bottom left) to see both requests: the `POST` to `/post` for **Create User**, followed by the triggered **Send Welcome Email**. Click **Save**.\n\n> **Tip:** Instead of pasting the ID, you can type the request name inside the quotes and pick it from the autocomplete dropdown. To override variables for just that run, pass a second argument: `pm.execution.runRequest(id, { variables: { userEmail: \"someone@example.com\" } })`.\n\n> **Good to know:** `pm.execution.runRequest()` works in the Postman app and Collection Runner, but not in Newman or the Postman VS Code extension. Each script can call it up to 10 times. Request IDs change when you export and re-import a collection, so update them afterwards.",
+          "points": 25,
+          "validatorId": "validate-dynamic-variables-trigger-it-from-create-user"
+        },
+        {
+          "id": "step-11-run-the-whole-workflow",
+          "stepNumber": 11,
+          "title": "Run the Whole Workflow",
+          "description": "Now it all comes together. Because every run generates new data, you can repeat the whole workflow as often as you like with no collisions. The **Collection Runner** sends your requests in order, and **Create User** still triggers the welcome email on its own.\n\n1. In the sidebar, drag the requests into this order: **Echo Dynamic Values**, **Create User**, **Get User**, **Update User**, **Send Welcome Email**.\n2. Hover over the **User Lifecycle** collection, click **⋯** → **Run collection**.\n3. In the request list, **uncheck Send Welcome Email**. **Create User** already triggers it, so leaving it checked would send a second, duplicate email.\n4. Set **Iterations** to **3** and click **Run User Lifecycle**.\n5. Confirm every test passes in all three iterations, including **Welcome email was sent to the new user**.\n6. Expand **Create User** in two different iterations and compare the request bodies. Each iteration used a different ID, name, and email, and each welcome email went to that iteration's user.\n\n> **Troubleshooting:** If **Get User** or **Update User** fails in the first iteration, check that **Create User** comes before them in the run order. They depend on the variables it sets.",
+          "points": 15,
+          "validatorId": "validate-dynamic-variables-run-the-whole-workflow",
+          "manual": true
+        }
+      ]
+    },
+    {
+      "id": "lesson-5-where-to-go-next",
+      "slug": "where-to-go-next",
+      "title": "Where to Go Next",
+      "partNumber": 5,
+      "description": "Dynamic variables are useful well beyond CRUD demos. Here are some ways to use them in your own projects.",
+      "steps": [
+        {
+          "id": "step-12-explore-more-uses-of-dynamic-variables",
+          "stepNumber": 12,
+          "title": "Explore More Uses of Dynamic Variables",
+          "description": "Take a few minutes to see where dynamic variables fit in real-world API work.\n\n| Use case | How dynamic variables help |\n|----------|----------------------------|\n| **Load and performance testing** | Every virtual user sends unique data, so you don't just test cache hits. See [Performance testing](https://learning.postman.com/docs/collections/performance-testing/testing-api-performance/). |\n| **Randomized test seeding** | Fill a dev or staging database with realistic users, orders, or products by running a collection with many iterations. See [Collection runs](https://learning.postman.com/docs/collections/running-collections/intro-to-collection-runs/). |\n| **Mixing with data files** | Use a CSV or JSON file for the fields that must be specific, and dynamic variables for everything else. See [Data files](https://learning.postman.com/docs/collections/running-collections/working-with-data-files/). |\n| **Webhook simulation** | Send realistic event payloads with unique event IDs and timestamps to your webhook receiver. |\n| **Mock servers** | Return varied, realistic responses from a mock. See [Mock servers](https://learning.postman.com/docs/designing-and-developing-your-api/mocking-data/setting-up-mock/). |\n\nReference docs:\n\n- [Dynamic variables list](https://learning.postman.com/docs/tests-and-scripts/write-scripts/variables-list/) — every `{{$...}}` variable Postman supports\n- [Variables in Postman](https://learning.postman.com/docs/sending-requests/variables/variables/) — scopes and precedence\n- [`pm.variables` reference](https://learning.postman.com/docs/tests-and-scripts/write-scripts/postman-sandbox-reference/pm-variables/) — including `replaceIn()`\n\nOpen the dynamic variables list and pick one variable you haven't used yet, then click **Done**.",
+          "points": 5,
+          "validatorId": "validate-dynamic-variables-explore-more-uses-of-dynamic-variables",
+          "manual": true
+        }
+      ]
+    }
+  ]
+}
