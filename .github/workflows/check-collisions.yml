@@ -1,0 +1,65 @@
+name: Check Module Collisions
+
+# pull_request_target runs with this repo's secrets even for PRs from forks,
+# which is needed to read the private liftoff repo. To keep that safe, this
+# workflow never checks out or runs code from the PR: it only reads the PR's
+# changed file paths from the GitHub API.
+on:
+  pull_request_target:
+    paths:
+      - "modules/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-new-module:
+    name: Check for collisions with liftoff
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Compare submitted module IDs with liftoff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LIFTOFF_TOKEN: ${{ secrets.LIFTOFF_READ_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$LIFTOFF_TOKEN" ]; then
+            echo "::error::The LIFTOFF_READ_TOKEN secret is not set"
+            exit 1
+          fi
+
+          # gh api exits non-zero on any non-2xx response, so a bad or expired
+          # token fails here with GitHub's message instead of a jq error.
+          EXISTING=$(GH_TOKEN="$LIFTOFF_TOKEN" gh api \
+            repos/Postman-DevRel/liftoff/contents/src/content/modules \
+            --jq '.[] | select(.type == "dir") | .name')
+
+          echo "Existing modules in liftoff:"
+          echo "$EXISTING"
+
+          # Module IDs this PR adds or changes (modules/<id>/...).
+          SUBMITTED=$(gh api --paginate "repos/$REPO/pulls/$PR_NUMBER/files" \
+            --jq '.[] | select(.status != "removed") | .filename | split("/")
+                  | select(length > 2 and .[0] == "modules") | .[1]' | sort -u)
+
+          echo "Modules in this PR:"
+          echo "$SUBMITTED"
+
+          COLLISION=0
+          for MODULE_ID in $SUBMITTED; do
+            if grep -qxF "$MODULE_ID" <<< "$EXISTING"; then
+              echo "::error::Module ID '$MODULE_ID' already exists in the main liftoff repo"
+              COLLISION=1
+            fi
+          done
+
+          if [ "$COLLISION" -eq 1 ]; then
+            exit 1
+          fi
+
+          echo "No collisions found."
